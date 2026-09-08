@@ -1,0 +1,17 @@
+{
+  "name": "dems",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:frontend": "vite --config frontend/vite.config.js",
+    "dev:backend": "node backend/server.js",
+    "build": "vite build --config frontend/vite.config.js",
+    "preview": "vite preview --config frontend/vite.config.js"
+  }
+}

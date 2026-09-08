@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== DEMS design system — clean, professional, dark ===== */
+
+@layer base {
+  body {
+    @apply bg-surface-900 text-slate-100 font-body antialiased;
+  }
+  ::selection {
+    @apply bg-primary-600/40;
+  }
+}
+
+@layer components {
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5
+      text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500
+      focus:outline-none focus:ring-2 focus:ring-primary-500/50 disabled:opacity-50;
+  }
+  /* Secondary / outline button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-surface-600
+      px-5 py-2.5 text-sm font-medium text-slate-200 transition hover:border-surface-400
+      hover:bg-surface-800 focus:outline-none focus:ring-2 focus:ring-surface-600;
+  }
+  /* Form field */
+  .field {
+    @apply w-full rounded-lg border border-surface-600 bg-surface-800 px-3.5 py-2.5
+      text-sm text-slate-100 placeholder-slate-500 transition focus:border-primary-500
+      focus:outline-none focus:ring-2 focus:ring-primary-500/30;
+  }
+  /* Card surface */
+  .card {
+    @apply rounded-xl border border-surface-700 bg-surface-800/70 p-5;
+  }
+  /* Small uppercase label */
+  .label {
+    @apply text-xs font-semibold uppercase tracking-wider text-slate-400;
+  }
+}
