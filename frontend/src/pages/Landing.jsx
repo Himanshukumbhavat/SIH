@@ -14,25 +14,28 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-surface-900">
       {/* Top navigation */}
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+      <div className="gov-stripe h-1" aria-hidden="true" />
+      <header className="gov-header border-b border-white/20">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Logo />
         <nav className="flex items-center gap-3">
           <Link to="/login" className="rounded-lg px-4 py-2 text-sm font-medium text-slate-300 transition hover:text-white">Sign in</Link>
           <Link to="/login" className="btn-primary !py-2.5">Enter Portal</Link>
         </nav>
+        </div>
       </header>
 
       {/* Hero — asymmetric 2-column */}
-      <section className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-5 lg:items-center">
-        <div className="lg:col-span-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-surface-600 bg-surface-800 px-3 py-1 text-xs font-medium text-primary-300">
+      <section className="mx-auto grid max-w-6xl gap-12 px-6 py-16 page-enter lg:grid-cols-5 lg:items-center">
+        <div className="animate-reveal lg:col-span-3">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary-100 bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-600">
             <span className="h-1.5 w-1.5 rounded-full bg-primary-400" />
-            Digital Evidence Management · Law Enforcement
+            Government of India · Digital Evidence Management
           </span>
-          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.1] text-white md:text-5xl">
+          <h1 className="mt-6 font-display text-4xl font-bold leading-[1.1] text-slate-100 md:text-5xl">
             Evidence that
             <br />
-            <span className="text-primary-400">stands up to scrutiny.</span>
+            <span className="text-primary-500">stands up to scrutiny.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
             A single secure platform where judicial and law-enforcement teams store,
@@ -48,7 +51,7 @@ export default function Landing() {
         {/* Right — feature cards */}
         <div id="features" className="grid gap-5 lg:col-span-2">
           {FEATURES.map((f) => (
-            <div key={f.n} className="card">
+            <div key={f.n} className="card" style={{ animationDelay: `${Number(f.n) * 100}ms` }}>
               <span className="font-display text-sm font-semibold text-primary-400">{f.n}</span>
               <h3 className="mt-2 font-display text-lg font-semibold text-white">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{f.text}</p>
@@ -61,7 +64,7 @@ export default function Landing() {
       <section className="border-y border-surface-700 bg-surface-800/40">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 px-6 py-6">
           {STRIP.map((t) => (
-            <span key={t} className="font-mono text-xs font-medium uppercase tracking-wider text-slate-400">
+            <span key={t} className="font-serif text-sm font-medium uppercase tracking-wider text-slate-400">
               {t}
             </span>
           ))}

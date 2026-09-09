@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { getCasesForUser, addCase, addActivity, formatDateTime } from '../data/mockData'
 import { useAuth } from '../context/AuthContext'
 import Badge from '../components/Badge'
+import { sha256Hex } from '../lib/hash'
 
 const STAGE_TONE = { Active: 'info', 'Under Review': 'warning', Closed: 'neutral' }
 const PRIORITY_TONE = { High: 'danger', Medium: 'warning', Low: 'neutral' }
@@ -12,7 +13,9 @@ export default function Cases() {
   const [query, setQuery] = useState('')
   const [stageFilter, setStageFilter] = useState('All')
   const [showNewCase, setShowNewCase] = useState(false)
-  const [newCase, setNewCase] = useState({ title: '', priority: 'Medium', suspectName: '', suspectEmail: '' })
+  const [newCase, setNewCase] = useState({ title: '', priority: 'Medium', suspectName: '', suspectEmail: '', aadhaarCard: null })
+  const [caseError, setCaseError] = useState('')
+  const [creatingCase, setCreatingCase] = useState(false)
 
   const filteredCases = useMemo(() => cases.filter((c) => {
     const q = query.toLowerCase()
@@ -20,14 +23,26 @@ export default function Cases() {
       && (stageFilter === 'All' || c.stage === stageFilter)
   }), [cases, query, stageFilter])
 
-  function handleCreateCase(event) {
+  async function handleCreateCase(event) {
     event.preventDefault()
-    if (!newCase.title.trim()) return
+    if (!newCase.title.trim() || !newCase.aadhaarCard) {
+      setCaseError('Case title and suspect Aadhaar card are required.')
+      return
+    }
+    setCreatingCase(true)
+    setCaseError('')
+    const aadhaarHash = await sha256Hex(newCase.aadhaarCard)
     const record = {
       id: `C-${Date.now().toString().slice(-4)}`,
       title: newCase.title.trim(), state: user.state, district: user.district, thana: user.thana,
       stage: 'Active', priority: newCase.priority,       updated: 'Just now', updatedAt: new Date().toISOString(),
       suspect: { name: newCase.suspectName.trim() || 'Not provided', email: newCase.suspectEmail.trim() || 'Not provided' },
+      aadhaarCard: {
+        name: newCase.aadhaarCard.name,
+        size: newCase.aadhaarCard.size,
+        type: newCase.aadhaarCard.type,
+        sha256: aadhaarHash,
+      },
     }
     addCase(record)
     addActivity({
@@ -37,7 +52,8 @@ export default function Cases() {
       timestamp: record.updatedAt,
     })
     setCases(getCasesForUser(user))
-    setNewCase({ title: '', priority: 'Medium', suspectName: '', suspectEmail: '' })
+    setNewCase({ title: '', priority: 'Medium', suspectName: '', suspectEmail: '', aadhaarCard: null })
+    setCreatingCase(false)
     setShowNewCase(false)
   }
 
@@ -59,15 +75,31 @@ export default function Cases() {
             <h2 className="font-display text-lg font-semibold text-white">Create New Case</h2>
             <button type="button" onClick={() => setShowNewCase(false)} className="text-slate-400 hover:text-white">✕</button>
           </div>
-          <input className="field" placeholder="Case title" value={newCase.title} onChange={(e) => setNewCase({ ...newCase, title: e.target.value })} required />
+          <input className="field" placeholder="Case title" value={newCase.title} onChange={(e) => { setNewCase({ ...newCase, title: e.target.value }); setCaseError('') }} required />
           <div className="grid gap-3 sm:grid-cols-2">
             <select className="field" value={newCase.priority} onChange={(e) => setNewCase({ ...newCase, priority: e.target.value })}>
               <option>High</option><option>Medium</option><option>Low</option>
             </select>
             <input className="field" placeholder="Suspect name" value={newCase.suspectName} onChange={(e) => setNewCase({ ...newCase, suspectName: e.target.value })} />
             <input className="field sm:col-span-2" type="email" placeholder="Suspect email" value={newCase.suspectEmail} onChange={(e) => setNewCase({ ...newCase, suspectEmail: e.target.value })} />
+            <label className="sm:col-span-2">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Suspect Aadhaar card
+              </span>
+              <input
+                className="field"
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(e) => { setNewCase({ ...newCase, aadhaarCard: e.target.files?.[0] || null }); setCaseError('') }}
+                required
+              />
+              <span className="mt-1 block text-xs text-slate-500">Accepted: image or PDF. Only the file name, size, type, and SHA-256 fingerprint are recorded in this demo.</span>
+            </label>
           </div>
-          <button type="submit" className="btn-primary">Create Case</button>
+          {caseError && <p className="text-sm text-danger">{caseError}</p>}
+          <button type="submit" disabled={creatingCase} className="btn-primary">
+            {creatingCase ? 'Securing Aadhaar record…' : 'Create Case'}
+          </button>
         </form>
       )}
 

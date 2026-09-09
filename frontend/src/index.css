@@ -2,42 +2,132 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== DEMS design system — clean, professional, dark ===== */
+/* ===== DEMS design system — professional public-service portal ===== */
 
 @layer base {
   body {
     @apply bg-surface-900 text-slate-100 font-body antialiased;
+    background-image: linear-gradient(180deg, rgba(229, 240, 247, 0.85), transparent 300px);
   }
   ::selection {
     @apply bg-primary-600/40;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 @layer components {
   /* Primary button */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-5 py-2.5
       text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500
       focus:outline-none focus:ring-2 focus:ring-primary-500/50 disabled:opacity-50;
   }
   /* Secondary / outline button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-surface-600
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-surface-600
       px-5 py-2.5 text-sm font-medium text-slate-200 transition hover:border-surface-400
       hover:bg-surface-800 focus:outline-none focus:ring-2 focus:ring-surface-600;
   }
   /* Form field */
   .field {
-    @apply w-full rounded-lg border border-surface-600 bg-surface-800 px-3.5 py-2.5
+    @apply w-full rounded-md border border-surface-600 bg-surface-800 px-3.5 py-2.5
       text-sm text-slate-100 placeholder-slate-500 transition focus:border-primary-500
       focus:outline-none focus:ring-2 focus:ring-primary-500/30;
   }
   /* Card surface */
   .card {
-    @apply rounded-xl border border-surface-700 bg-surface-800/70 p-5;
+    @apply rounded-lg border border-surface-700 bg-surface-800 p-5 shadow-[0_8px_25px_rgba(16,55,80,0.08)] transition duration-300;
+    animation: rise-in 500ms ease-out both;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(16, 55, 80, 0.13);
   }
   /* Small uppercase label */
   .label {
     @apply text-xs font-semibold uppercase tracking-wider text-slate-400;
+  }
+  .gov-stripe {
+    background: linear-gradient(
+      to right,
+      #f28c28 0 33.33%,
+      #ffffff 33.33% 66.66%,
+      #16824b 66.66% 100%
+    );
+  }
+  .gov-header {
+    background: linear-gradient(100deg, #0f766e 0%, #5b21b6 58%, #e86f2b 100%);
+  }
+  .portal-heading {
+    @apply font-display font-bold tracking-tight text-slate-100;
+  }
+  .section-rule {
+    @apply border-b-4 border-primary-500;
+  }
+  .page-enter {
+    animation: page-enter 450ms ease-out both;
+  }
+  .animate-reveal {
+    animation: rise-in 650ms ease-out both;
+  }
+  .animate-pulse-soft {
+    animation: pulse-soft 2.8s ease-in-out infinite;
+  }
+  .btn-primary {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    transform: translateX(-120%);
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.25), transparent 65%);
+    transition: transform 650ms ease;
+  }
+  .btn-primary:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+@layer utilities {
+  /* Existing page components use these semantic classes; remap them for the light theme. */
+  .text-white { color: #19324a !important; }
+  .text-slate-100 { color: #19324a !important; }
+  .text-slate-200 { color: #294a61 !important; }
+  .text-slate-300 { color: #3f6077 !important; }
+  .text-slate-400 { color: #5e778c !important; }
+  .text-slate-500 { color: #71879a !important; }
+  .text-slate-600 { color: #8296a7 !important; }
+  .btn-primary { color: #ffffff !important; }
+  .bg-primary-600.text-white { color: #ffffff !important; }
+  .gov-header .text-white { color: #ffffff !important; }
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.18); }
+  50% { box-shadow: 0 0 0 8px rgba(15, 118, 110, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

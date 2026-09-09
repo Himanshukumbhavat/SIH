@@ -35,6 +35,12 @@ This starts both services:
 
 Build the frontend with `npm run build`.
 
+The backend uses MongoDB for authenticated case, user, document, and activity
+routes. Start MongoDB locally and set `MONGODB_URI` in `backend/.env` before
+using those routes. The health endpoint still starts without MongoDB so the
+server can be checked independently. If port 3001 is already in use, stop the
+old Node process or change `PORT` in `backend/.env`.
+
 ## Project structure
 
 ```
@@ -65,3 +71,14 @@ scripts/
 The current application intentionally uses demo data in the frontend. The
 backend is separated and ready for real authentication, database, case, and
 document endpoints to be added without mixing server code into the UI.
+
+## Two-step sign-in
+
+The demo login now requires a six-digit TOTP code from an authenticator app
+(Google Authenticator, Microsoft Authenticator, or Authy). On the first login,
+copy the displayed setup key into the authenticator app; later logins only ask
+for the rotating code. Five invalid codes end the pending sign-in attempt.
+
+This is a frontend demo implementation. Production security must move user
+authentication, TOTP secrets, sessions, and rate limiting to the backend over
+HTTPS; never store TOTP secrets in browser storage for a real deployment.

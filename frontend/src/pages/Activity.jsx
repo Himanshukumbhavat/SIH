@@ -9,6 +9,7 @@ const ACTION_TONE = {
   uploaded:  'primary',
   approved:  'success',
   viewed:    'info',
+  accessed:  'info',
   requested: 'warning',
   rejected:  'danger',
 }

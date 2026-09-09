@@ -21,23 +21,27 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r border-surface-700 bg-surface-900">
-      <div className="px-5 py-5">
+    <aside className="flex h-full w-64 flex-col border-r border-surface-700 bg-surface-800">
+      <div className="border-b border-surface-700 bg-surface-800 px-5 py-5">
         <NavLink to="/dashboard">
           <Logo />
         </NavLink>
+        <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          National digital evidence portal
+        </p>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3">
+      <nav className="flex-1 space-y-1 px-3 page-enter">
         {LINKS.map((l) => (
           <NavLink
             key={l.to}
             to={l.to}
+            style={{ animationDelay: `${LINKS.indexOf(l) * 70}ms` }}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 isActive
-                  ? 'bg-surface-700 text-white'
-                  : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+                  ? 'border-l-4 border-primary-500 bg-primary-soft text-white shadow-sm'
+                  : 'text-slate-400 hover:bg-surface-950 hover:text-slate-200'
               }`
             }
           >

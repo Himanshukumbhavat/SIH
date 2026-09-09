@@ -1,7 +1,7 @@
 // Top bar: page title on the left, quick actions on the right.
 export default function Topbar({ title, subtitle, children }) {
   return (
-    <header className="flex items-center justify-between border-b border-surface-700 bg-surface-800/40 px-6 py-4">
+    <header className="gov-header flex items-center justify-between rounded-lg px-6 py-4 shadow-sm">
       <div>
         <h1 className="font-display text-xl font-semibold text-white">{title}</h1>
         {subtitle && <p className="text-sm text-slate-400">{subtitle}</p>}

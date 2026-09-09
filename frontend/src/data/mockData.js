@@ -10,31 +10,6 @@ export const ROLES = {
 
 // ---- Location hierarchy (State → District → Thana) ----
 export const LOCATION_HIERARCHY = {
-  'Maharashtra': {
-    'Mumbai': ['Andheri PS', 'Bandra PS', 'Colaba PS', 'Juhu PS'],
-    'Pune': ['Deccan PS', 'Koregaon Park PS', 'Shivajinagar PS'],
-    'Nagpur': ['Sitabuldi PS', 'Sadar PS', 'Lakadganj PS'],
-  },
-  'Gujarat': {
-    'Ahmedabad': ['Navrangpura PS', 'Ellisbridge PS', 'Vastrapur PS', 'Satellite PS'],
-    'Surat': ['Athwa PS', 'Adajan PS', 'Katargam PS'],
-    'Rajkot': ['University PS', 'Gandhigram PS'],
-  },
-  'Delhi': {
-    'New Delhi': ['Connaught Place PS', 'Chanakyapuri PS', 'Parliament Street PS'],
-    'South Delhi': ['Hauz Khas PS', 'Mehrauli PS', 'Saket PS'],
-    'North Delhi': ['Civil Lines PS', 'Kashmere Gate PS'],
-  },
-  'Karnataka': {
-    'Bengaluru Urban': ['Cubbon Park PS', 'Indiranagar PS', 'Whitefield PS', 'Koramangala PS'],
-    'Mysuru': ['Devaraja PS', 'Lashkar PS'],
-    'Mangaluru': ['Barke PS', 'Pandeshwar PS'],
-  },
-  'Rajasthan': {
-    'Jaipur': ['MI Road PS', 'Jhotwara PS', 'Vaishali Nagar PS'],
-    'Jodhpur': ['Ratanada PS', 'Sardarpura PS'],
-    'Udaipur': ['Hiran Magri PS', 'Ambamata PS'],
-  },
   'Uttar Pradesh': {
     'Ghaziabad': [
       'Ghaziabad Kotwali PS', 'Sihani Gate PS', 'Kavinagar PS', 'Indirapuram PS',
@@ -104,8 +79,30 @@ export function authenticateUser(email, password) {
   ) || null
 }
 
-// ---- Cases (tagged with location + suspect info for email notification) ----
-export const CASES = [
+// ---- Synthetic demonstration cases (not real police records) ----
+const CASE_TEMPLATES = [
+  ['Digital payment fraud review', 'High'],
+  ['Vehicle theft evidence file', 'Medium'],
+  ['Cyber harassment complaint', 'High'],
+  ['Property document verification', 'Medium'],
+  ['Missing person investigation', 'High'],
+]
+
+const GENERATED_CASES = LOCATION_HIERARCHY['Uttar Pradesh'].Ghaziabad.flatMap((thana, stationIndex) =>
+  CASE_TEMPLATES.map(([title, priority], caseIndex) => ({
+    id: `GZ-${String(stationIndex * CASE_TEMPLATES.length + caseIndex + 1).padStart(3, '0')}`,
+    title: `${title} — ${thana.replace(/ PS$/, '')}`,
+    state: 'Uttar Pradesh',
+    district: 'Ghaziabad',
+    thana,
+    stage: ['Active', 'Under Review', 'Closed'][caseIndex % 3],
+    priority,
+    updated: 'Today',
+    suspect: { name: `Synthetic Subject ${stationIndex + 1}-${caseIndex + 1}`, email: 'not-real@example.invalid' },
+  })),
+)
+
+const LEGACY_CASES = [
   // Maharashtra — Mumbai
   { id: 'C-1042', title: 'Cyber Fraud Investigation',       state: 'Maharashtra', district: 'Mumbai',  thana: 'Andheri PS',        stage: 'Active',       priority: 'High',   updated: '2h ago',  suspect: { name: 'Vikram Desai',    email: 'vikram.desai@mail.com'   } },
   { id: 'C-1055', title: 'Online Banking Scam',             state: 'Maharashtra', district: 'Mumbai',  thana: 'Andheri PS',        stage: 'Under Review', priority: 'High',   updated: '6h ago',  suspect: { name: 'Pooja Mehta',     email: 'pooja.mehta@mail.com'    } },
@@ -170,6 +167,11 @@ export const CASES = [
   { id: 'GZ-1012', title: 'Public Disturbance Inquiry', state: 'Uttar Pradesh', district: 'Ghaziabad', thana: 'Muradnagar PS', stage: 'Closed', priority: 'Low', updated: 'Today', suspect: { name: 'Harish Pal', email: 'harish.pal@example.com' } },
 ]
 
+// Current rollout scope: Uttar Pradesh → Ghaziabad → its police stations.
+export const CASES = [...GENERATED_CASES, ...LEGACY_CASES].filter((item) => (
+  item.state === 'Uttar Pradesh' && item.district === 'Ghaziabad'
+))
+
 const STORED_CASES_KEY = 'dems_cases'
 
 export function getCases() {
@@ -204,22 +206,26 @@ export function formatDateTime(value) {
 }
 
 // ---- Documents (evidence files) — tagged to a case ----
-export const DOCUMENTS = [
-  { id: 'DOC-001', caseId: 'C-1042', name: 'bank_statements_q2.pdf',    size: '2.4 MB', type: 'PDF',     uploaded: '2h ago',  status: 'Verified', thana: 'Andheri PS' },
-  { id: 'DOC-002', caseId: 'C-1042', name: 'call_logs_may.xlsx',        size: '1.1 MB', type: 'Sheet',   uploaded: '3h ago',  status: 'Pending',  thana: 'Andheri PS' },
-  { id: 'DOC-003', caseId: 'C-1056', name: 'surveillance_footage.mp4',  size: '48 MB',  type: 'Video',   uploaded: '1d ago',  status: 'Verified', thana: 'Colaba PS' },
-  { id: 'DOC-004', caseId: 'C-1041', name: 'witness_statement.docx',    size: '180 KB', type: 'Doc',     uploaded: '1d ago',  status: 'Verified', thana: 'Bandra PS' },
-  { id: 'DOC-005', caseId: 'C-1063', name: 'evidence_photos.zip',       size: '310 MB', type: 'Archive', uploaded: '2d ago',  status: 'Pending',  thana: 'Juhu PS' },
-]
+export const DOCUMENTS = CASES.map((caseItem, index) => ({
+  id: `DOC-GZ-${String(index + 1).padStart(3, '0')}`,
+  caseId: caseItem.id,
+  name: `synthetic_case_record_${caseItem.id.toLowerCase()}.pdf`,
+  size: '1.2 KB',
+  type: 'PDF',
+  uploaded: 'Today',
+  status: index % 3 === 0 ? 'Pending' : 'Verified',
+  thana: caseItem.thana,
+  previewText: `DEMS SYNTHETIC DEMONSTRATION RECORD\n\nCase: ${caseItem.id}\nTitle: ${caseItem.title}\nState: Uttar Pradesh\nDistrict: Ghaziabad\nPolice station: ${caseItem.thana}\nPriority: ${caseItem.priority}\nStatus: ${caseItem.stage}\n\nThis document contains fictional training data only. It is not an authentic police record and must not be used as evidence.`,
+}))
 
 // ---- Recent activity (audit-style feed) ----
-export const ACTIVITY = [
-  { actor: 'Andheri PS — Uploader', action: 'uploaded', target: 'DOC-001', time: '2h ago' },
-  { actor: 'Colaba PS — Uploader',  action: 'uploaded', target: 'DOC-003', time: '3h ago' },
-  { actor: 'Bandra PS — Reader',    action: 'viewed',   target: 'C-1041',  time: '5h ago' },
-  { actor: 'Juhu PS — Reader',      action: 'viewed',   target: 'C-1063',  time: '1d ago' },
-  { actor: 'Andheri PS — Uploader', action: 'uploaded', target: 'DOC-002', time: '1d ago' },
-]
+export const ACTIVITY = DOCUMENTS.slice(0, 8).map((document, index) => ({
+  actor: `${document.thana} — ${index % 2 ? 'Reader' : 'Uploader'}`,
+  action: index % 2 ? 'viewed' : 'uploaded',
+  target: document.id,
+  district: 'Ghaziabad',
+  time: 'Today',
+}))
 
 export function getActivityForUser(user) {
   let stored = []
@@ -230,14 +236,14 @@ export function getActivityForUser(user) {
   }
   const activity = [...stored, ...ACTIVITY]
   if (user?.role === 'DISTRICT_DM') {
-    return activity.filter((item) => item.actor.includes(user.district))
+    return activity.filter((item) => item.district === user.district || item.actor.includes(user.district))
   }
   return activity.filter((item) => item.actor.startsWith(user?.thana || ''))
 }
 
 export function addActivity(entry) {
   const stored = JSON.parse(localStorage.getItem('dems_activity') || '[]')
-  localStorage.setItem('dems_activity', JSON.stringify([entry, ...stored]))
+  localStorage.setItem('dems_activity', JSON.stringify([{ ...entry, district: entry.district || 'Ghaziabad' }, ...stored]))
 }
 
 // ---- Case load trend (for the chart) ----

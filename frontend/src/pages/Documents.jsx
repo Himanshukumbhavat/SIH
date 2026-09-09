@@ -1,6 +1,6 @@
 // Documents — evidence library.
 // Uploaders can upload files + register evidence; readers see read-only view.
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { DOCUMENTS, getCasesForUser, addActivity, formatDateTime } from '../data/mockData'
 import { useAuth } from '../context/AuthContext'
 import Badge from '../components/Badge'
@@ -9,21 +9,57 @@ import { sha256Hex } from '../lib/hash'
 const STATUS_TONE = { Verified: 'success', Pending: 'warning' }
 const short = (h) => (h ? `${h.slice(0, 10)}…${h.slice(-6)}` : '—')
 
+function createPdfUrl(text) {
+  const escapePdfText = (value) => value.replace(/([\\()])/g, '\\$1')
+  const lines = text.split('\n').map((line, index) => `BT /F1 11 Tf 54 ${748 - index * 18} Td (${escapePdfText(line)}) Tj ET`).join('\n')
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    `<< /Length ${lines.length} >>\nstream\n${lines}\nendstream`,
+  ]
+  let pdf = '%PDF-1.4\n'
+  const offsets = [0]
+  objects.forEach((object, index) => {
+    offsets[index + 1] = pdf.length
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`
+  })
+  const xref = pdf.length
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n` })
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`
+  return URL.createObjectURL(new Blob([pdf], { type: 'application/pdf' }))
+}
+
 export default function Documents() {
   const { user, canUpload } = useAuth()
   const inputRef = useRef(null)
+  const objectUrlsRef = useRef([])
   const [file, setFile] = useState(null)
   const [hash, setHash] = useState('')
   const [hashing, setHashing] = useState(false)
   const [selectedCase, setSelectedCase] = useState('')
   const [uploadedDocs, setUploadedDocs] = useState([])  // newly uploaded docs this session
 
+  useEffect(() => () => {
+    objectUrlsRef.current.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
+  }, [])
+
   // Only show cases belonging to this user's thana
   const thanaCases = getCasesForUser(user)
 
   async function handleFile(f) {
     if (!f) return
-    setFile({ name: f.name, size: f.size, sizeLabel: formatSize(f.size) })
+    const objectUrl = URL.createObjectURL(f)
+    objectUrlsRef.current.push(objectUrl)
+    setFile({
+      name: f.name,
+      size: f.size,
+      sizeLabel: formatSize(f.size),
+      objectUrl,
+      mimeType: f.type,
+    })
     setHash('')
     setHashing(true)
     const digest = await sha256Hex(f)
@@ -35,6 +71,21 @@ export default function Documents() {
     if (bytes < 1024) return `${bytes} B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  function openDocument(document) {
+    const openedAt = new Date().toISOString()
+    const actor = `${user.thana || user.district} — ${user.roleInfo.name}`
+    const url = document.objectUrl || createPdfUrl(document.previewText || `DEMS document ${document.id}`)
+    window.open(url, '_blank', 'noopener,noreferrer')
+    if (!document.objectUrl) window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    addActivity({
+      actor,
+      action: 'accessed',
+      target: document.id,
+      timestamp: openedAt,
+      district: user.district,
+    })
   }
 
   async function handleRegister() {
@@ -54,6 +105,8 @@ export default function Documents() {
       status: 'Pending',
       thana: user.thana,
       hash,
+      objectUrl: file.objectUrl,
+      mimeType: file.mimeType,
     }
 
     setUploadedDocs(prev => [newDoc, ...prev])
@@ -184,8 +237,10 @@ export default function Documents() {
               {allDocs.map((d) => (
                 <tr key={d.id} className="transition hover:bg-surface-800/50">
                   <td className="px-5 py-4">
-                    <p className="font-medium text-white">{d.name}</p>
-                    <p className="text-xs text-slate-500">{d.id} · {d.size}</p>
+                   <button type="button" onClick={() => openDocument(d)} className="text-left font-medium text-primary-300 underline-offset-2 hover:underline">
+                     {d.name}
+                   </button>
+                   <p className="text-xs text-slate-500">{d.id} · {d.size}</p>
                   </td>
                   <td className="px-5 py-4 font-mono text-xs text-primary-300">{d.caseId}</td>
                   <td className="px-5 py-4 text-slate-300">{d.type}</td>
