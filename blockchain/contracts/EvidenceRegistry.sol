@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 contract EvidenceRegistry {
+
     struct Evidence {
         string documentId;
         string documentHash;
@@ -26,13 +27,13 @@ contract EvidenceRegistry {
         uint256 _version
     ) public {
         evidenceHistory[_documentId].push(
-            Evidence(
-                _documentId,
-                _documentHash,
-                _version,
-                block.timestamp,
-                msg.sender
-            )
+            Evidence({
+                documentId: _documentId,
+                documentHash: _documentHash,
+                version: _version,
+                timestamp: block.timestamp,
+                uploader: msg.sender
+            })
         );
 
         emit EvidenceRegistered(
@@ -47,11 +48,14 @@ contract EvidenceRegistry {
     function getLatestEvidence(
         string memory _documentId
     ) public view returns (Evidence memory) {
-        Evidence[] memory history = evidenceHistory[_documentId];
+        require(
+            evidenceHistory[_documentId].length > 0,
+            "No evidence found"
+        );
 
-        require(history.length > 0, "No evidence found");
-
-        return history[history.length - 1];
+        return evidenceHistory[_documentId][
+            evidenceHistory[_documentId].length - 1
+        ];
     }
 
     function verifyEvidence(
@@ -70,5 +74,28 @@ contract EvidenceRegistry {
         }
 
         return false;
+    }
+
+    // NEW: return complete evidence history
+    function getEvidenceHistory(
+        string memory _documentId
+    ) public view returns (Evidence[] memory) {
+        return evidenceHistory[_documentId];
+    }
+
+    // NEW: get a particular version
+    function getEvidenceVersion(
+        string memory _documentId,
+        uint256 _version
+    ) public view returns (Evidence memory) {
+        Evidence[] memory history = evidenceHistory[_documentId];
+
+        for (uint256 i = 0; i < history.length; i++) {
+            if (history[i].version == _version) {
+                return history[i];
+            }
+        }
+
+        revert("Version not found");
     }
 }

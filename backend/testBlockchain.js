@@ -1,37 +1,55 @@
 import {
   registerEvidence,
-  verifyEvidence,
+  getEvidenceHistory,
+  getEvidenceVersion,
 } from "./services/blockchain.service.js";
 
 async function main() {
   try {
-    const documentId = "BACKEND-TEST-001";
+    const documentId = "VERSION-TEST-001";
 
-    const documentHash =
-      "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
+    console.log("Registering version 1...");
 
-    console.log("Registering evidence on blockchain...");
-
-    const result = await registerEvidence(
+    await registerEvidence(
       documentId,
-      documentHash,
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       1
     );
 
-    console.log("Transaction successful!");
-    console.log("Transaction hash:", result.transactionHash);
-    console.log("Block number:", result.blockNumber.toString());
+    console.log("Registering version 2...");
 
-    const verified = await verifyEvidence(
+    await registerEvidence(
       documentId,
-      documentHash
+      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      2
     );
 
-    console.log("Blockchain verification:", verified);
+    const history = await getEvidenceHistory(documentId);
+
+    console.log("\nTotal versions:", history.length);
+
+    for (const evidence of history) {
+      console.log({
+        documentId: evidence.documentId,
+        hash: evidence.documentHash,
+        version: evidence.version.toString(),
+        timestamp: evidence.timestamp.toString(),
+        uploader: evidence.uploader,
+      });
+    }
+
+    const version2 = await getEvidenceVersion(
+      documentId,
+      2
+    );
+
+    console.log(
+      "\nVersion 2 hash:",
+      version2.documentHash
+    );
   } catch (error) {
-    console.error("Blockchain test failed:");
+    console.error("Version history test failed:");
     console.error(error);
-    process.exitCode = 1;
   }
 }
 

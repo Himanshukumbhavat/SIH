@@ -64,5 +64,27 @@ async function verifyEvidence(documentId, documentHash) {
     args: [documentId, documentHash],
   });
 }
+async function getEvidenceHistory(documentId) {
+  return publicClient.readContract({
+    address: contractAddress,
+    abi: artifact.abi,
+    functionName: 'getEvidenceHistory',
+    args: [documentId],
+  });
+}
 
-export { registerEvidence, verifyEvidence };
+async function getEvidenceVersion(documentId, version) {
+  return publicClient.readContract({
+    address: contractAddress,
+    abi: artifact.abi,
+    functionName: 'getEvidenceVersion',
+    args: [documentId, BigInt(version)],
+  });
+}
+
+export {
+  registerEvidence,
+  verifyEvidence,
+  getEvidenceHistory,
+  getEvidenceVersion,
+};
