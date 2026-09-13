@@ -1,3 +1,8 @@
-node_modules/
-dist/
+# Hardhat generated files
+blockchain/cache/
+blockchain/artifacts/
+blockchain/ignition/deployments/
+
+# Environment secrets
 .env
+backend/.env
