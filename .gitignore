@@ -1,8 +1,9 @@
-# Hardhat generated files
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+.env
+backend/.env
+
 blockchain/cache/
 blockchain/artifacts/
 blockchain/ignition/deployments/
-
-# Environment secrets
-.env
-backend/.env
